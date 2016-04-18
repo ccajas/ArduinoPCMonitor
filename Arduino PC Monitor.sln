@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arduino PC Monitor", "Arduino PC Monitor\Arduino PC Monitor.csproj", "{53F59B1C-84B0-42D6-8100-348CC385203F}"
+# Visual Studio 2010 Express for Windows Phone
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arduino PC Monitor", "ArduinoPCMonitor\Arduino PC Monitor.csproj", "{53F59B1C-84B0-42D6-8100-348CC385203F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
