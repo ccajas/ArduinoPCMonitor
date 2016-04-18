@@ -92,6 +92,11 @@ namespace Arduino_PC_Monitor
             else
                 return new Point((int)Math.Round((double)width * widthPercentage / 100, 0), (int)Math.Round((double)height * heightPercentage / 100, 0));
         }
+
+        /// <summary>
+        /// Add a value to the graph and refresh the panel
+        /// </summary>
+        /// <param name="value">New value</param>
     
         public void AddValue(int value)
         {

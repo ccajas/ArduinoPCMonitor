@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.IO.Ports;
-using System.Runtime.InteropServices;
-using GetCoreTempInfoNET;
 using System.Diagnostics;
 using System.Threading;
+using GetCoreTempInfoNET;
 
 namespace Arduino_PC_Monitor
 {
@@ -19,12 +13,14 @@ namespace Arduino_PC_Monitor
         SerialPort port;
         static CoreTempInfo CTInfo;
         GpuzWrapper gpuz;
+
         Graph CPUusage_Graph;
         Graph GPUusage_Graph;
         Graph CPUtemp_Graph;
         Graph GPUtemp_Graph;
         Graph Downloadspeed_Graph;
         Graph RamUsed_Graph;
+
         public Form1()
         {
             InitializeComponent();
@@ -37,6 +33,7 @@ namespace Arduino_PC_Monitor
                 System.Windows.Forms.ControlStyles.AllPaintingInWmPaint |
                 System.Windows.Forms.ControlStyles.OptimizedDoubleBuffer,
                 true);
+
             if (!IsProcessOpen("Core Temp"))
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo("Core Temp.exe");
@@ -93,9 +90,9 @@ namespace Arduino_PC_Monitor
         private void timer1_Tick(object sender, EventArgs e)
         {
             CTInfo.GetData();
+
             if (port.IsOpen)
             {
-                label3.Text = (int.Parse(label3.Text) + 1).ToString();
                 port.Write("r");
                 int cpuusage = (int)Math.Round(performanceCounter1.NextValue(), 0);
                 int gpuusage = (int)Math.Round(gpuz.GetUsage(), 0);
@@ -111,10 +108,10 @@ namespace Arduino_PC_Monitor
                     port.Write(" ");
                 port.Write(ram);
                 port.Write("n");
-                int kbs = (int)Math.Round(performanceCounter3.NextValue() / 1024f, 0);
+                int kbs = 0;// (int)Math.Round(performanceCounter3.NextValue() / 1024f, 0);
 
                 string kbsec = kbs + "Kb";
-                totalbytes += performanceCounter3.NextValue();
+                totalbytes += 0;// performanceCounter3.NextValue();
                 port.Write(kbsec);
                 int cputemp = (int)Math.Round(CTInfo.GetTemp[0], 0);
                 int gputemp = (int)Math.Round(gpuz.GetTemp(), 0);
@@ -124,7 +121,19 @@ namespace Arduino_PC_Monitor
                 string totalmega = Math.Round((totalbytes / 1024f) / 1024f, 0).ToString() + "Mb";
                 for (int i = 1; i <= 16 - temp.Length - kbsec.Length - totalmega.Length; i++)
                     port.Write(" ");
+
                 port.Write(totalmega);
+                port.Write("\n");
+
+                // Update labels
+
+                // Increment packets sent by 1
+                label3.Text = (int.Parse(label3.Text) + 1).ToString();
+
+                // Update GPU temp
+                label5.Text = gputemp.ToString();
+
+                // Update graphs
 
                 CPUusage_Graph.AddValue(cpuusage);
                 GPUusage_Graph.AddValue(gpuusage);
@@ -165,7 +174,8 @@ namespace Arduino_PC_Monitor
 
         int GetUsedRam()
         {
-            return (int)Math.Round((new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024f) / 1024f, 0) - (int)Math.Round(performanceCounter2.NextValue(), 0);
+            return (int)0;
+            //Math.Round((new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024f) / 1024f, 0) - (int)Math.Round(performanceCounter2.NextValue(), 0);
         }
 
         public bool IsProcessOpen(string name)
@@ -198,6 +208,16 @@ namespace Arduino_PC_Monitor
             GPUtemp_Graph = new Graph(panel4, 0, -1, -1);
             Downloadspeed_Graph = new Graph(panel5, 0, -1, -1);
             RamUsed_Graph = new Graph(panel6, 0, -1, -1);
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
