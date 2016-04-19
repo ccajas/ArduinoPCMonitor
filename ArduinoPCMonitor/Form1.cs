@@ -53,7 +53,6 @@ namespace Arduino_PC_Monitor
             Thread.Sleep(5000);
 
             CTInfo = new CoreTempInfo();
-
             gpuz = new GpuzWrapper();
             gpuz.Open();
 
@@ -94,8 +93,8 @@ namespace Arduino_PC_Monitor
             if (port.IsOpen)
             {
                 port.Write("r");
-                int cpuusage = (int)Math.Round(performanceCounter1.NextValue(), 0);
-                int gpuusage = (int)Math.Round(gpuz.GetUsage(), 0);
+                int cpuusage = (byte)0;// Math.Round(performanceCounter1.NextValue(), 0);
+                int gpuusage = (byte)Math.Round(gpuz.GetUsage(), 0);
 
                 string usage = cpuusage + "," + gpuusage + "%";
 
@@ -118,11 +117,11 @@ namespace Arduino_PC_Monitor
                 string temp = " " + cputemp + "," + gputemp + "C";
 
                 port.Write(temp);
-                string totalmega = Math.Round((totalbytes / 1024f) / 1024f, 0).ToString() + "Mb";
-                for (int i = 1; i <= 16 - temp.Length - kbsec.Length - totalmega.Length; i++)
-                    port.Write(" ");
+                //string totalmega = Math.Round((totalbytes / 1024f) / 1024f, 0).ToString() + "Mb";
+                //for (int i = 1; i <= 16 - temp.Length - kbsec.Length - totalmega.Length; i++)
+                //    port.Write(" ");
 
-                port.Write(totalmega);
+                //port.Write(totalmega);
                 port.Write("\n");
 
                 // Update labels
