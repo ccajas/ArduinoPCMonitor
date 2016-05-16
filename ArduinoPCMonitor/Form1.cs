@@ -11,6 +11,7 @@ namespace Arduino_PC_Monitor
     public partial class Form1 : Form
     {      
         SerialPort port;
+
         static CoreTempInfo CTInfo;
         GpuzWrapper gpuz;
 
@@ -20,6 +21,8 @@ namespace Arduino_PC_Monitor
         Graph GPUtemp_Graph;
         Graph Downloadspeed_Graph;
         Graph RamUsed_Graph;
+
+        byte ticks = 0;
 
         public Form1()
         {
@@ -50,37 +53,44 @@ namespace Arduino_PC_Monitor
                 Process.Start(startInfo); 
             }
 
-            Thread.Sleep(5000);
+            Thread.Sleep(2000);
 
             CTInfo = new CoreTempInfo();
             gpuz = new GpuzWrapper();
             gpuz.Open();
 
-            port = new SerialPort("COM3", 9600, Parity.None, 8, StopBits.One);
+            port = new SerialPort("COM3", 19200, Parity.None, 8, StopBits.One);
             button1.PerformClick();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (!port.IsOpen)
-            {
-                button1.Text = "Stop";
-                timer1.Enabled = true;
-                label1.Text = "Started";
-                label1.ForeColor = Color.Green;
+            string[] pts = SerialPort.GetPortNames();
 
-                port.Open();
-            }
-            else
+            foreach (string com in SerialPort.GetPortNames())
             {
-                button1.Text = "Start";
-                timer1.Enabled = false;
-                label3.Text = "0";
-                label1.Text = "Not started";
-                label1.ForeColor = Color.Black;
+                // If COM3 exists, open or close it
 
-                port.Write("r");
-                port.Close();
+                if (com == port.PortName && !port.IsOpen)
+                {
+                    button1.Text = "Stop";
+                    timer1.Enabled = true;
+                    label1.Text = "Started";
+                    label1.ForeColor = Color.Green;
+
+                    port.Open();
+                }
+                else
+                {
+                    button1.Text = "Start";
+                    timer1.Enabled = false;
+                    label3.Text = "0";
+                    label1.Text = "Not started";
+                    label1.ForeColor = Color.Black;
+
+                    port.Write("r");
+                    port.Close();
+                }
             }
         }
 
@@ -89,53 +99,51 @@ namespace Arduino_PC_Monitor
         private void timer1_Tick(object sender, EventArgs e)
         {
             CTInfo.GetData();
+            byte[] statBuffer = new byte[3];
 
             if (port.IsOpen)
             {
-                port.Write("r");
-                int cpuusage = (byte)0;// Math.Round(performanceCounter1.NextValue(), 0);
-                int gpuusage = (byte)Math.Round(gpuz.GetUsage(), 0);
+                // CPU and GPU usage data
 
-                string usage = cpuusage + "," + gpuusage + "%";
+                statBuffer[0] = (byte)0;
+                statBuffer[2] = (byte)Math.Round(gpuz.GetUsage(), 0);
 
-                port.Write(usage);
+                // RAM usage data
 
                 int UsedRam = GetUsedRam();
-
                 string ram = UsedRam + "Mb";
-                for (int i = 1; i <= 16 - usage.Length - ram.Length; i++)
-                    port.Write(" ");
-                port.Write(ram);
-                port.Write("n");
-                int kbs = 0;// (int)Math.Round(performanceCounter3.NextValue() / 1024f, 0);
 
+                int kbs = 0;
                 string kbsec = kbs + "Kb";
-                totalbytes += 0;// performanceCounter3.NextValue();
-                port.Write(kbsec);
-                int cputemp = (int)Math.Round(CTInfo.GetTemp[0], 0);
-                int gputemp = (int)Math.Round(gpuz.GetTemp(), 0);
-                string temp = " " + cputemp + "," + gputemp + "C";
+                totalbytes += 0;
 
-                port.Write(temp);
-                //string totalmega = Math.Round((totalbytes / 1024f) / 1024f, 0).ToString() + "Mb";
-                //for (int i = 1; i <= 16 - temp.Length - kbsec.Length - totalmega.Length; i++)
-                //    port.Write(" ");
+                // Add 128 to temperature data, can go below zero in a few rare cases
 
-                //port.Write(totalmega);
-                port.Write("\n");
+                byte cpuTemp = (byte)(Math.Round(CTInfo.GetTemp[0], 0));
+                byte gpuTemp = (byte)(Math.Round(gpuz.GetTemp(), 0));
+
+                statBuffer[0] = (byte)cpuTemp;
+                statBuffer[1] = (byte)gpuTemp;
 
                 // Update labels
+
+                int cpuTempG = cpuTemp;
+                int gpuTempG = gpuTemp;
 
                 // Increment packets sent by 1
                 label3.Text = (int.Parse(label3.Text) + 1).ToString();
 
                 // Update GPU temp
-                label5.Text = gputemp.ToString();
+                label5.Text = gpuTempG.ToString();
+
+                // Send data via serial
+                port.Write(statBuffer, 0, 2);
+                ticks++;
 
                 // Update graphs
 
-                CPUusage_Graph.AddValue(cpuusage);
-                GPUusage_Graph.AddValue(gpuusage);
+                CPUusage_Graph.AddValue(cpuTempG);
+                GPUusage_Graph.AddValue(gpuTempG);
 
                 if (UsedRam > RamUsed_Graph.highest)
                 {
@@ -153,21 +161,21 @@ namespace Arduino_PC_Monitor
 
                 Downloadspeed_Graph.AddValue(kbs);
 
-                if (cputemp > CPUtemp_Graph.highest)
+                if (cpuTempG > CPUtemp_Graph.highest)
                 {
-                    CPUtemp_Graph.highest = cputemp;
-                    CPUtemp_Graph.mid = (int)Math.Round((double)cputemp / 2, 0);
+                    CPUtemp_Graph.highest = cpuTempG;
+                    CPUtemp_Graph.mid = (int)Math.Round((double)cpuTempG / 2, 0);
                 }
 
-                CPUtemp_Graph.AddValue(cputemp);
+                CPUtemp_Graph.AddValue(cpuTempG);
 
-                if (gputemp > GPUtemp_Graph.highest)
+                if (gpuTempG > GPUtemp_Graph.highest)
                 {
-                    GPUtemp_Graph.highest = gputemp;
-                    GPUtemp_Graph.mid = (int)Math.Round((double)gputemp / 2, 0);
+                    GPUtemp_Graph.highest = gpuTempG;
+                    GPUtemp_Graph.mid = (int)Math.Round((double)gpuTempG / 2, 0);
                 }
 
-                GPUtemp_Graph.AddValue(gputemp);
+                GPUtemp_Graph.AddValue(gpuTempG);
             }
         }
 
