@@ -13,6 +13,7 @@
 # Build results
 ArduinoPCMonitor/bin/
 ArduinoPCMonitor/obj/
+ArduinoPCMonitor/_etc/
 
 # Visual Studio 2015 cache/options directory
 .vs/
