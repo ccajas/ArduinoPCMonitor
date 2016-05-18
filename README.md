@@ -13,4 +13,4 @@ interface) and rely on microcontroller code and project hardware to display outp
 
 ### AVR compatibility
 
-The current target microcontroller is on a DigiSpark or compatible device that uses a ATtiny*x*5 MCU, but ATtiny85 is recommended for its memory capacity. The USI UART library is used to provide TWI(I<sup>2</sup>C) communication [(see doc here)](http://www.atmel.com/Images/doc4300.pdf) and a modified version of the [SEEED OLED library](https://github.com/Seeed-Studio/OLED_Display_128X64) for controlling a display with a SSD130x driver (the driver for this may change in the future).
+The current target microcontroller is on a DigiSpark or compatible device that uses a ATtiny*x*5 MCU, but ATtiny85 is recommended for its memory capacity. The USI UART library is used to provide TWI (I<sup>2</sup>C) communication [(see doc here)](http://www.atmel.com/Images/doc4300.pdf) and a modified version of the [SEEED OLED library](https://github.com/Seeed-Studio/OLED_Display_128X64) for controlling a display with a SSD130*x* driver (the driver for this may change in the future).
